@@ -203,6 +203,15 @@ function mdToHtml(md) {
 
 /* ------------------------------------------------------------ 載入資料 */
 async function loadAll() {
+  const D = window.FH_DATA;
+  if (D) {  // 單一 HTML 模式：資料已內嵌（pipeline/build_single.py）
+    Object.assign(S, { latest: D.latest, breadth: D.breadth, macro: D.macro, valuation: D.valuation, registry: D.registry, reportMd: D.report_md, insightMd: D.insight_md, status: D.status, live: false, builtAt: D.built_at });
+    S.universe = (D.universe_quotes && D.universe_quotes.tickers) || {};
+    S.indexHist = parseCsv(D.index_pe_csv); S.tickerHist = new Map();
+    [D.pe_csv_prev, D.pe_csv].forEach(c => parseCsv(c).forEach(r => { if (!S.tickerHist.has(r.symbol)) S.tickerHist.set(r.symbol, []); S.tickerHist.get(r.symbol).push(r); }));
+    S.indexes = (S.registry && S.registry.indexes) || []; S.aliases = (S.registry && S.registry.aliases) || {}; S.byKey = Object.fromEntries(S.indexes.map(x => [x.key, x]));
+    return;
+  }
   const bust = '?v=' + Math.floor(Date.now() / 600000);
   const j = p => fetch(p + bust).then(r => r.ok ? r.json() : null).catch(() => null);
   const t = p => fetch(p + bust).then(r => r.ok ? r.text() : null).catch(() => null);
@@ -228,7 +237,7 @@ async function loadUniverse() {
 /* ------------------------------------------------------------ 各區塊 */
 function renderHeader() {
   const asof = (S.latest && S.latest.asof) || (S.breadth && S.breadth.asof) || '—';
-  $('#asof').textContent = `資料日期 ${asof}`;
+  $('#asof').textContent = `資料日期 ${asof}` + (S.builtAt ? `（打包 ${S.builtAt}）` : '');
   $('#liveBadge').style.display = S.live ? '' : 'none';
 }
 function renderOverview() {
@@ -386,7 +395,7 @@ async function showTarget(t) {
   const host = $('#peResult'); host.classList.add('loading');
   try {
     if (t.kind === 'index') await renderIndexResult(t.key); else await renderSymbolResult(t.symbol);
-    history.replaceState(null, '', '#pe?q=' + encodeURIComponent(t.kind === 'index' ? t.key : t.symbol));
+    try { history.replaceState(null, '', '#pe?q=' + encodeURIComponent(t.kind === 'index' ? t.key : t.symbol)); } catch (e) { }
   } finally { host.classList.remove('loading'); }
 }
 async function apiLookup(q, live) {
@@ -470,7 +479,7 @@ function renderFooter() {
 /* ------------------------------------------------------------ 分頁與初始化 */
 function initTabs() {
   const show = id => { $$('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === id ? 'true' : 'false')); $$('section.panel').forEach(s => s.classList.toggle('active', s.id === 'tab-' + id)); CHARTS.forEach(c => c.render()); };
-  $$('nav.tabs button').forEach(b => { b.onclick = () => { show(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }; });
+  $$('nav.tabs button').forEach(b => { b.onclick = () => { show(b.dataset.tab); try { history.replaceState(null, '', '#' + b.dataset.tab); } catch (e) { } }; });
   const h = location.hash.replace('#', ''); const id = h.split('?')[0]; show(['report', 'breadth', 'rates', 'pe', 'vol'].includes(id) ? id : 'report');
   const q = new URLSearchParams(h.split('?')[1] || '').get('q'); if (q) { $('#peQuery').value = q; loadUniverse().then(() => { const r = resolveQuery(q); if (r) showTarget(r); }); }
 }

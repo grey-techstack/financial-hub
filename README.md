@@ -31,13 +31,19 @@ python3 pipeline/pe.py NDX --live                        # 指數改成現場重
 python3 pipeline/pe.py TSM --json                        # JSON 輸出
 ```
 
-## 自動更新與網頁
+## 自動更新與「在哪裡看」
 
 1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:15 UTC（台北 06:15）自動跑全量管線並提交 `data/` 與 `reports/`。
    也可在 Actions 頁面手動觸發（`workflow_dispatch`）。
-2. **GitHub Pages**（`.github/workflows/pages.yml`）：資料更新後自動部署靜態站。
-   第一次需到 repo **Settings → Pages → Source 選「GitHub Actions」**，之後網址為 `https://grey-techstack.github.io/financial-hub/`。
-3. **每日 AI 解讀**：由 Claude Routine 每日執行 `docs/daily-report.md` 的流程，產生 `reports/YYYY-MM-DD-insight.md`，並推播摘要。
+2. **每日 AI 解讀**：Claude Routine 每日執行 `docs/daily-report.md` 的流程，產生 `reports/YYYY-MM-DD-insight.md` 並推播摘要。
+3. **看儀表板的三種方式**：
+   - **單一 HTML 檔**：`python3 pipeline/build_single.py` 會產生 `dist/dashboard.html`（資料內嵌，可直接用瀏覽器開、不需伺服器，
+     也能丟到任何靜態空間）與 `dist/artifact.html`（發布成 Claude 頁面用的片段版）。
+   - **本機**：`python3 pipeline/serve.py`，另有即時查詢任何代號的功能。
+   - **GitHub Pages**（`.github/workflows/pages.yml`）：GitHub 免費方案的 private repo 不能開 Pages，先把 repo 改成 public
+     （Settings → General → Danger Zone → Change visibility），再到 Settings → Pages → Source 選「GitHub Actions」。
+     之後每次資料更新都會自動部署到 `https://grey-techstack.github.io/financial-hub/`（沒開通時部署步驟會自動略過，不會報錯）。
+     不想公開 repo 的話，Cloudflare Pages / Netlify / Vercel 的免費方案都能連 private repo 直接部署（build command 留空、輸出目錄 `/`）。
 
 ## 追蹤清單
 
@@ -67,7 +73,8 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 ```
 index.html, assets/        儀表板（純靜態，無建置步驟）
 pipeline/
-  run_all.py               一鍵更新（--quick 快速模式）
+  run_all.py               一鍵更新（--quick 快速模式；--report-only 只重做日報）
+  build_single.py          打包成單一 HTML（dist/）
   yahoo.py                 Yahoo Finance 客戶端（chart / 批次報價 / quoteSummary / search）
   constituents.py          成分股來源
   breadth.py               參與度

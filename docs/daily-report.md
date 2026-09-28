@@ -33,7 +33,7 @@
    要求：每個判斷都引用具體數字；解釋「為什麼」而不只是描述；指出和前幾天相比的變化；語氣是研究筆記，不是投資建議；
    資料有缺（例如 FRED 沒更新）就明說。
 5. 存檔：同一份內容寫入 `reports/YYYY-MM-DD-insight.md` 與 `reports/latest-insight.md`。
-6. 提交：`git add reports && git commit -m "AI 解讀 YYYY-MM-DD" && git push`（push 失敗先 `git pull --rebase` 再推）。
+6. 提交：`git add reports data && git commit -m "AI 解讀 YYYY-MM-DD" && git push`（push 失敗先 `git pull --rebase` 再推）。
 7. 回覆一段 3–5 句的摘要（今日一句話 + 最重要的 2 個觀察 + 明日觀察），這段會成為通知內容。
 
 ## 注意
