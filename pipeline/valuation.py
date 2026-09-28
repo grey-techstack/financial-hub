@@ -13,6 +13,7 @@ from common import HIST, fnum, upsert_csv
 from registry import INDEXES, INDEX_BY_KEY, PE_INDEXES
 
 LOG = logging.getLogger("valuation")
+MIN_COVERAGE = 0.5  # 指數聚合 PE 所需的最低市值覆蓋率
 
 
 def ntm_blend(est: dict, asof: dt.date) -> tuple[float | None, float | None]:
@@ -111,6 +112,11 @@ def aggregate(records: dict[str, dict], syms: list[str]) -> dict:
     ntm, ntm_n, ntm_cov = agg("ne")
     tpe, tpe_n, tpe_cov = agg("te")
     cpe, cpe_n, cpe_cov = agg("ce")
+    # 市值覆蓋率低於 50% 的聚合值沒有代表性（例如只有少數成分股有分析師預估），不輸出
+    fpe = fpe if (fpe_cov or 0) >= MIN_COVERAGE else None
+    ntm = ntm if (ntm_cov or 0) >= MIN_COVERAGE else None
+    tpe = tpe if (tpe_cov or 0) >= MIN_COVERAGE else None
+    cpe = cpe if (cpe_cov or 0) >= MIN_COVERAGE else None
     pos = [r["fpe"] for r in mem if r.get("fpe") and 0 < r["fpe"] < 500]
     ntm_pos = [r["ntm"] for r in mem if r.get("ntm") and 0 < r["ntm"] < 500]
     top = sorted(with_mc, key=lambda r: -r["mc"])[:15]

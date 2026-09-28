@@ -29,13 +29,34 @@ QUICK_SOURCES = ["sp500", "ndx", "dow", "sox"]
 FULL_SOURCES = QUICK_SOURCES + ["sp400", "sp600", "tsx", "us_universe"]
 
 
+def report_only() -> int:
+    from common import read_json
+    breadth = read_json(DATA / "breadth.json")
+    valuation = read_json(DATA / "valuation.json")
+    macro = read_json(DATA / "macro.json")
+    status = read_json(DATA / "status.json", {}) or {}
+    if not (breadth and valuation and macro):
+        LOG.error("data/ 內缺少 breadth/valuation/macro，請先跑完整管線")
+        return 2
+    asof = breadth.get("asof") or macro.get("asof")
+    md, latest = build_report(breadth, valuation, macro, read_csv_rows(HIST / "index_pe.csv"), asof, status)
+    (REPORTS / f"{asof}.md").write_text(md, encoding="utf-8")
+    (REPORTS / "latest.md").write_text(md, encoding="utf-8")
+    write_json(DATA / "latest.json", latest)
+    LOG.info("日報已重新產生：%s", asof)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true", help="只跑核心指數，跳過全市場")
     ap.add_argument("--workers", type=int, default=12)
     ap.add_argument("--no-history", action="store_true", help="不寫入歷史 CSV（測試用）")
+    ap.add_argument("--report-only", action="store_true", help="不抓資料，只用 data/ 現有檔案重新產生日報")
     args = ap.parse_args()
     setup_logging()
+    if args.report_only:
+        return report_only()
     t_start = time.time()
     timings: dict[str, float] = {}
     generated_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M")

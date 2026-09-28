@@ -293,4 +293,5 @@ def load_constituents(sources: list[str], cache_path=None) -> tuple[dict[str, li
 
 def save_universe(sets: dict[str, list[dict]], meta: dict, path=None) -> None:
     path = path or (DATA / "universe.json")
-    write_json(path, {"asof": today().isoformat(), "fetched_at": meta.get("fetched_at", {}), "status": meta.get("status", {}), "sets": sets}, compact=True)
+    slim = {k: ([{"symbol": r["symbol"]} for r in v] if k in ("r1000", "r2000", "r3000") else v) for k, v in sets.items()}
+    write_json(path, {"asof": today().isoformat(), "fetched_at": meta.get("fetched_at", {}), "status": meta.get("status", {}), "sets": slim}, compact=True)

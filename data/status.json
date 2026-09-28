@@ -1,22 +1,26 @@
 {
- "generated_at": "2026-09-28 15:53",
+ "generated_at": "2026-09-28 15:56",
  "sources": {
   "sp500": "ok (503)",
   "ndx": "ok (101)",
   "dow": "ok (30)",
-  "sox": "ok (30)"
+  "sox": "ok (30)",
+  "sp400": "ok (400)",
+  "sp600": "ok (603)",
+  "tsx": "ok (219)",
+  "us_universe": "ok (5608)"
  },
- "quick": true,
- "symbols_quoted": 537,
- "symbols_breadth": 526,
- "estimates": 526,
+ "quick": false,
+ "symbols_quoted": 5601,
+ "symbols_breadth": 5591,
+ "estimates": 510,
  "timings": {
-  "constituents": 4.8,
-  "quotes": 1.4,
-  "macro": 4.9,
-  "breadth": 7.2,
-  "valuation": 8.8,
+  "constituents": 9.0,
+  "quotes": 8.3,
+  "macro": 6.3,
+  "breadth": 446.5,
+  "valuation": 83.1,
   "report": 0.0
  },
- "total_seconds": 27.1
+ "total_seconds": 553.3
 }
