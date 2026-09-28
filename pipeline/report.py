@@ -158,7 +158,7 @@ def breadth_signals(rows, breadth):
         if max(vals) < 30:
             sig.append({"level": "alert", "topic": "breadth", "short": "三大指數參與度已進入超賣區",
                         "text": f"三大指數（{names}）成分股站上 20 日線的比例僅 {pct_txt}，已進入超賣區間（<30%），短線賣壓極端，歷史上常出現反彈但趨勢未必轉強。"})
-        elif max(vals) < 40:
+        elif max(vals) <= 40:
             sig.append({"level": "watch", "topic": "breadth", "short": "三大指數均已接近超賣的區間",
                         "text": f"三大指數（{names}）成分股站上 20 日線的比例為 {pct_txt}，均已接近超賣的區間（<40%）。"})
         elif min(vals) > 70:
@@ -167,13 +167,18 @@ def breadth_signals(rows, breadth):
         elif min(vals) > 60:
             sig.append({"level": "watch", "topic": "breadth", "short": "三大指數參與度接近超買",
                         "text": f"三大指數（{names}）成分股站上 20 日線的比例為 {pct_txt}，接近超買區間（>60%）。"})
-    for r in rows:
-        if r["key"] in ("DJI", "SPX", "COMP"):
+    others = [r for r in rows if r["key"] not in ("DJI", "SPX", "COMP") and zone(r["b20"])[1] == "alert"]
+    over = [r for r in others if r["b20"] > 50]
+    under = [r for r in others if r["b20"] <= 50]
+    for grp, label in ((under, "超賣"), (over, "超買")):
+        if not grp:
             continue
-        z, lvl = zone(r["b20"])
-        if lvl == "alert":
-            sig.append({"level": "alert", "topic": "breadth", "short": f"{r['name']} 20 日線參與度 {r['b20']:.0f}%（{z}）",
-                        "text": f"{r['name']} 成分股站上 20 日線比例 {r['b20']:.0f}%，屬{z}。"})
+        items = "、".join(f"{r['name']} {r['b20']:.0f}%" for r in grp)
+        worst = min(grp, key=lambda r: r["b20"]) if label == "超賣" else max(grp, key=lambda r: r["b20"])
+        sig.append({"level": "alert", "topic": "breadth",
+                    "short": f"{len(grp)} 個指數 20 日線參與度進入{label}區（最{'低' if label == '超賣' else '高'} {worst['name']} {worst['b20']:.0f}%）",
+                    "text": f"站上 20 日線比例進入{label}區（{'<30%' if label == '超賣' else '>70%'}）的指數：{items}。"
+                            + ("中小型股與廣度指數同步超賣，代表賣壓是全面性的，而非只集中在權值股。" if label == "超賣" and len(grp) >= 3 else "")})
     for r in rows:
         if r["b20_w"] is not None and abs(r["b20_w"]) >= 15 and r["key"] in ("SPX", "NDX", "RUT", "SOX"):
             direction = "惡化" if r["b20_w"] < 0 else "改善"
