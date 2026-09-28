@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Hub 市場數據</title>
+<meta name="description" content="市場參與度、實質利率與黃金、Forward PE 查詢、波動率與每日市場日報">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand">Financial Hub<small id="asof">載入中…</small><span id="liveBadge" class="badge live" style="display:none">本機即時模式</span></div>
+  <nav class="tabs" role="tablist" aria-label="主題">
+    <button type="button" role="tab" data-tab="report">今日報告</button>
+    <button type="button" role="tab" data-tab="breadth">參與度</button>
+    <button type="button" role="tab" data-tab="rates">實質利率與黃金</button>
+    <button type="button" role="tab" data-tab="pe">Forward PE</button>
+    <button type="button" role="tab" data-tab="vol">波動率</button>
+  </nav>
+  <button id="themeBtn" class="theme-btn" type="button" title="切換深淺色" aria-label="切換深淺色">◐</button>
+</div></header>
+
+<main class="wrap">
+  <div id="overview" class="grid kpi" style="margin-top:16px"></div>
+
+  <section id="tab-report" class="panel" role="tabpanel">
+    <h1>今日報告</h1>
+    <p class="sub">規則式訊號與完整日報由 pipeline 每日產生（reports/latest.md）；AI 解讀來自每日 Routine（reports/latest-insight.md）。</p>
+    <div id="summary" class="summary"></div>
+    <h2>重點訊號</h2>
+    <div id="signals" class="signals"></div>
+    <div id="insight"></div>
+    <h2>完整日報</h2>
+    <div id="reportMd" class="md card"></div>
+  </section>
+
+  <section id="tab-breadth" class="panel" role="tabpanel">
+    <h1>參與度：成分股站上均線的比例</h1>
+    <p class="sub">對應 Bloomberg「Percentage of Members Above Moving Average」。20 日線比例 &lt;40% 接近超賣、&lt;30% 超賣；&gt;60% 接近超買、&gt;70% 超買。點任一列可看該指數的歷史。</p>
+    <div class="card table-wrap" id="breadthTable"></div>
+    <div class="controls"><select id="breadthIndex" class="ctl" aria-label="選擇指數"></select><div id="breadthRange"></div></div>
+    <div class="chart-card">
+      <div class="chart-title"><b id="breadthChartTitle">參與度歷史</b><span>站上 20 / 50 / 200 日線的成分股比例（%）</span></div>
+      <div id="breadthChart"></div>
+      <div id="breadthChartTable"></div>
+    </div>
+  </section>
+
+  <section id="tab-rates" class="panel" role="tabpanel">
+    <h1>實質利率與黃金</h1>
+    <p class="sub">10 年期實質利率（TIPS 殖利率）是黃金最重要的定價變數：實質利率上升，黃金承壓。兩張圖共用時間軸與十字線（不用雙軸疊圖）。</p>
+    <div id="ratesTiles" class="grid kpi"></div>
+    <div class="controls" id="ratesRange"></div>
+    <div class="chart-card">
+      <div class="chart-title"><b id="rateChartTitle">10 年期實質利率</b><span>FRED DFII10（備援：美國財政部）</span></div>
+      <div id="rateChart"></div>
+    </div>
+    <div class="chart-card" style="margin-top:12px">
+      <div class="chart-title"><b>黃金</b><span>COMEX 近月期貨 GC=F，USD/oz</span></div>
+      <div id="goldChart"></div>
+    </div>
+    <div id="ratesTable"></div>
+  </section>
+
+  <section id="tab-pe" class="panel" role="tabpanel">
+    <h1>Forward PE 查詢</h1>
+    <p class="sub">輸入股票代號、公司名或指數（SOX、SPX、NASDAQ、道瓊、2330.TW…）。靜態頁面涵蓋每日抓取的名單；本機執行 <code>python3 pipeline/serve.py</code> 可即時查任何代號。</p>
+    <div class="controls">
+      <div class="search"><input id="peQuery" placeholder="例如 NVDA、SOX、S&amp;P 500、Taiwan Semiconductor" autocomplete="off" spellcheck="false" aria-label="查詢股票或指數"><div id="peSuggest" class="suggest"></div></div>
+      <button id="peGo" class="theme-btn" type="button">查詢</button>
+    </div>
+    <div id="peChips" class="chips">
+      <span class="chip" data-q="SOX">SOX 費半</span><span class="chip" data-q="NDX">NASDAQ 100</span><span class="chip" data-q="SPX">S&amp;P 500</span><span class="chip" data-q="DJI">道瓊</span><span class="chip" data-q="RUT">Russell 2000</span><span class="chip" data-q="NVDA">NVDA</span><span class="chip" data-q="TSM">TSM</span><span class="chip" data-q="AAPL">AAPL</span>
+    </div>
+    <div id="peResult" class="card"><div class="empty">輸入名稱，或點上方標籤開始查詢</div></div>
+    <h2>指數估值總覽</h2>
+    <div class="card table-wrap" id="indexPeTable"></div>
+    <h2>追蹤清單</h2>
+    <p class="sub">編輯 config/watchlist.txt 新增代號，每日更新後會列在這裡並累積 PE 歷史。</p>
+    <div class="card" id="watchTable"></div>
+  </section>
+
+  <section id="tab-vol" class="panel" role="tabpanel">
+    <h1>波動率</h1>
+    <p class="sub">VIX 衡量美股選擇權隱含波動；MOVE 衡量美債市場波動（債市波動通常領先股市，並透過實質利率影響黃金）。</p>
+    <div id="volTiles" class="grid kpi"></div>
+    <div class="controls" id="volRange"></div>
+    <div class="grid two">
+      <div class="chart-card"><div class="chart-title"><b>VIX</b><span>CBOE 波動率指數</span></div><div id="vixChart"></div></div>
+      <div class="chart-card"><div class="chart-title"><b>MOVE</b><span>ICE BofA 美債波動率指數</span></div><div id="moveChart"></div></div>
+    </div>
+    <div id="volTable"></div>
+  </section>
+
+  <footer>
+    <b>資料狀態</b>
+    <ul id="statusList"></ul>
+    <p>方法：指數 PE = Σ成分股市值 ÷ Σ成分股盈餘（隱含股數 = 市值 ÷ 股價，含虧損公司；EPS 異常者排除）。NTM PE 依財年剩餘月數混合本財年與下一財年的分析師 EPS 共識，最接近 Bloomberg 的 BEst P/E。參與度以 Yahoo 收盤價計算；成分股名單來自 Wikipedia、Nasdaq、SSGA、Nasdaq Global Indexes 與 nasdaqtrader（Russell 與綜合指數為市值排名近似）。資料僅供研究參考，不構成投資建議。</p>
+    <p><a href="https://github.com/grey-techstack/financial-hub">GitHub：grey-techstack/financial-hub</a></p>
+  </footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

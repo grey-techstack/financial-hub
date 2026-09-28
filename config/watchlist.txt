@@ -1,0 +1,14 @@
+# 每日額外追蹤 forward PE 的代號（一行一個，# 之後是註解）。
+# 支援 Yahoo 代號：美股直接寫代號；台股 2330.TW；港股 0700.HK；加拿大 SHOP.TO
+NVDA
+AAPL
+MSFT
+AMZN
+GOOGL
+META
+TSLA
+AVGO
+TSM
+AMD
+ASML
+RKLB

@@ -1,0 +1,43 @@
+name: 部署 GitHub Pages
+
+on:
+  push:
+    branches: [main, claude/stock-market-data-query-2aox9i]
+    paths: ["index.html", "assets/**", "data/**", "reports/**"]
+  workflow_dispatch:
+  workflow_call:   # 由 update-data.yml 在資料更新後呼叫（bot 的 commit 不會觸發 push 事件）
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}   # 取分支最新 commit（含剛才 bot 推上去的資料）
+      - name: 組裝靜態站
+        run: |
+          mkdir -p _site/assets _site/data _site/reports
+          cp index.html _site/
+          cp -r assets/* _site/assets/
+          cp -r data/* _site/data/
+          cp -r reports/* _site/reports/
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
