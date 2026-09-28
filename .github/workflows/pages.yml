@@ -26,7 +26,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}   # 取分支最新 commit（含剛才 bot 推上去的資料）
+      - name: 檢查 Pages 是否已開通
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages 尚未開通：把 repo 設為 public，到 Settings → Pages → Source 選「GitHub Actions」後，下次更新會自動部署。"
+          fi
       - name: 組裝靜態站
+        if: steps.check.outputs.enabled == 'true'
         run: |
           mkdir -p _site/assets _site/data _site/reports
           cp index.html _site/
@@ -34,10 +46,11 @@ jobs:
           cp -r data/* _site/data/
           cp -r reports/* _site/reports/
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+        if: steps.check.outputs.enabled == 'true'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.check.outputs.enabled == 'true'
         with:
           path: _site
       - id: deployment
+        if: steps.check.outputs.enabled == 'true'
         uses: actions/deploy-pages@v4

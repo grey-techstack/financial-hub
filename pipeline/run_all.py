@@ -43,6 +43,8 @@ def report_only() -> int:
     (REPORTS / f"{asof}.md").write_text(md, encoding="utf-8")
     (REPORTS / "latest.md").write_text(md, encoding="utf-8")
     write_json(DATA / "latest.json", latest)
+    from build_single import build
+    build()
     LOG.info("日報已重新產生：%s", asof)
     return 0
 
@@ -155,6 +157,11 @@ def main() -> int:
     status["timings"] = {k: round(v, 1) for k, v in timings.items()}
     status["total_seconds"] = round(time.time() - t_start, 1)
     write_json(DATA / "status.json", status)
+    try:
+        from build_single import build
+        LOG.info("單一 HTML：%s", build())
+    except Exception as e:  # noqa: BLE001
+        LOG.warning("打包單一 HTML 失敗：%s", e)
     LOG.info("完成 %s，共 %.0fs：%s", asof, time.time() - t_start, status["timings"])
     return 0
 
