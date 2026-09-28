@@ -1,0 +1,31 @@
+# SOX 成分股快照 2026-09-28（自動更新；線上抓取失敗時使用）
+ADI	Analog Devices Cmn
+ALAB	Astera Labs, Inc.
+AMAT	Applied Materials
+AMD	Adv Micro Devices
+ARM	Arm Holdings Plc Ads
+ASML	Asml Hldg Ny Reg
+AVGO	Broadcom Inc.
+COHR	Coherent Corp. Cm
+CRDO	Credo Tch Gp Hld Ord
+ENTG	Entegris Inc
+GFS	Globalfoundries Ord
+INTC	Intel Corp
+KLAC	Kla Cp Cmn Stk
+LRCX	Lam Research Corp
+LSCC	Lattice Semicond
+MCHP	Microchip Technology
+MPWR	Monolithic Power Sys
+MRVL	Marvell Tech Inc Cmn
+MTSI	Macom Technology S
+MU	Micron Technology
+NVDA	Nvidia Corporation
+NXPI	Nxp Semiconductors
+ON	On Semiconductor
+Q	Qnity Electronics, I
+QCOM	Qualcomm Inc
+SITM	Sitime Corp Cmn Stk
+TER	Teradyne Inc Cmn
+TSEM	Tower Semiconductor
+TSM	Taiwan Semicond Ads
+TXN	Texas Instruments

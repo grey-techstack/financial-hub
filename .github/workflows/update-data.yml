@@ -1,0 +1,52 @@
+name: 每日更新市場數據
+
+on:
+  schedule:
+    # 週一至週五 22:15 UTC（美股收盤後約兩小時；台北時間 06:15）
+    - cron: "15 22 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: "快速模式（只跑道瓊 / S&P 500 / NASDAQ 100 / SOX）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 執行資料管線
+        run: python3 pipeline/run_all.py ${{ inputs.quick && '--quick' || '' }} --workers 12
+      - name: 提交更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data reports config/sox_fallback.txt
+          if git diff --cached --quiet; then echo "沒有變更"; exit 0; fi
+          git commit -m "數據更新 $(date -u +%F)"
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+  deploy:
+    needs: update
+    uses: ./.github/workflows/pages.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
