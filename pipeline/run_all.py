@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from breadth import build_close_frame, compute_breadth  # noqa: E402
+from breadth import build_frames, compute_breadth  # noqa: E402
 from common import DATA, HIST, REPORTS, read_csv_rows, read_watchlist, setup_logging, write_json  # noqa: E402
 from constituents import load_constituents, russell_proxies, save_universe  # noqa: E402
 from macro import build_macro, trading_calendar  # noqa: E402
@@ -116,10 +116,10 @@ def main() -> int:
     t0 = time.time()
     breadth_syms = list(dict.fromkeys(s for syms in members.values() for s in syms))
     charts = y.charts(breadth_syms, "2y")
-    df = build_close_frame(charts, calendar)
+    df, vol = build_frames(charts, calendar)
     del charts
-    breadth = compute_breadth(df, members)
-    del df
+    breadth = compute_breadth(df, members, vol=vol)
+    del df, vol
     idx_close = {k: (v.get("close") or [None])[-1] for k, v in (macro.get("indexes") or {}).items()}
     for key, rec in breadth["indexes"].items():
         ix = next((x for x in INDEXES if x["key"] == key), {})

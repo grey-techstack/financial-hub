@@ -47,9 +47,9 @@ function niceTicks(lo, hi, n = 5) {
   return ticks;
 }
 function seriesColor(i) { return cssVar(['--s1', '--s2', '--s3', '--div-neg', '--muted'][i] || '--muted'); }
-function heat(pct) {
+function heat(pct, center = 50, scale = 50) {
   if (!isNum(pct)) return '';
-  const t = (pct - 50) / 50; const a = 0.08 + 0.55 * Math.min(1, Math.abs(t));
+  const t = (pct - center) / scale; const a = 0.08 + 0.55 * Math.min(1, Math.abs(t));
   const hex = cssVar(t < 0 ? '--div-neg' : '--div-pos');
   const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
   return `background: rgba(${r},${g},${b},${a.toFixed(2)})`;
@@ -120,7 +120,8 @@ class LineChart {
       if (!d) return;
       if (this.opts.area && this.series.length === 1) {
         let a = '', first = null, last = null; dates.forEach((dt, i) => { const v = maps[si].get(dt); if (isNum(v)) { if (first === null) first = xs(i); last = xs(i); a += (a ? 'L' : 'M') + xs(i).toFixed(1) + ' ' + ys(v).toFixed(1); } });
-        if (a) svg.append(mk('path', { d: a + `L${last.toFixed(1)} ${m.t + ph}L${first.toFixed(1)} ${m.t + ph}Z`, class: 'area', fill: color }));
+        const baseY = (lo < 0 && hi > 0) ? ys(0) : m.t + ph;  // 跨越零軸的序列以零軸為底
+        if (a) svg.append(mk('path', { d: a + `L${last.toFixed(1)} ${baseY.toFixed(1)}L${first.toFixed(1)} ${baseY.toFixed(1)}Z`, class: 'area', fill: color }));
       }
       svg.append(mk('path', { d, class: 'line', stroke: color }));
       const pts = dates.map((dt, i) => [i, maps[si].get(dt)]).filter(p => isNum(p[1]));
@@ -262,12 +263,13 @@ function renderReport() {
   if (S.insightMd) { ins.append(el('h2', { text: 'AI 解讀' })); const d = el('div', { class: 'md card' }); d.innerHTML = mdToHtml(S.insightMd); ins.append(d); }
   const rep = $('#reportMd'); rep.innerHTML = S.reportMd ? mdToHtml(S.reportMd) : '<p class="empty">尚無日報</p>';
 }
+function mccOf(r) { const m = r && r.mcc; if (!m) return null; return m.v || m.i || null; }
 function renderBreadth() {
   const B = S.breadth; const host = $('#breadthTable'); host.textContent = '';
   if (!B) { host.append(el('div', { class: 'empty', text: '尚無參與度資料' })); return; }
   const wins = B.windows || [10, 20, 50, 100, 150, 200, 250];
   const tbl = el('table', { class: 'data' }); const hr = el('tr');
-  ['指數', '收盤', '今日', '成分股', ...wins.map(w => w + 'D'), '20D 5 日變化'].forEach(h => hr.append(el('th', { text: h })));
+  ['指數', '收盤', '今日', '成分股', ...wins.map(w => w + 'D'), '20D 5 日變化', '52 週淨新高', 'McClellan 累積', '震盪'].forEach(h => hr.append(el('th', { text: h })));
   tbl.append(el('thead', {}, hr)); const tb = el('tbody');
   (B.order || Object.keys(B.indexes)).forEach(k => {
     const r = B.indexes[k]; if (!r) return; const tr = el('tr', { class: 'clickable' });
@@ -278,6 +280,9 @@ function renderBreadth() {
     wins.forEach(w => { const v = (r.latest || {})[String(w)]; const td = el('td', { text: isNum(v) ? fmt(v, 0) : '—' }); td.setAttribute('style', heat(v)); tr.append(td); });
     const l20 = (r.latest || {})['20'], w20 = (r.week || {})['20']; const d = (isNum(l20) && isNum(w20)) ? l20 - w20 : null;
     tr.append(el('td', { text: signed(d, 0, ' pt'), class: dir(d) === 'up' ? 'pos' : dir(d) === 'down' ? 'neg' : '' }));
+    const nh = (r.nhnl || {}).latest; const tdN = el('td', { text: isNum(nh) ? signed(nh, 1, '%') : '—' }); tdN.setAttribute('style', heat(nh, 0, 8)); tr.append(tdN);
+    const m = mccOf(r); tr.append(el('td', { text: m && isNum(m.latest_sum) ? fmt(m.latest_sum, 0) : '—' }));
+    const o = m ? m.latest_osc : null; tr.append(el('td', { text: isNum(o) ? signed(o, 0) : '—', class: dir(o) === 'up' ? 'pos' : dir(o) === 'down' ? 'neg' : '' }));
     tr.onclick = () => { $('#breadthIndex').value = k; drawBreadthChart(); }; tb.append(tr);
   });
   tbl.append(tb); host.append(tbl);
@@ -285,14 +290,32 @@ function renderBreadth() {
   (B.order || Object.keys(B.indexes)).forEach(k => sel.append(el('option', { value: k, text: (B.indexes[k].name || k) + (B.indexes[k].approx ? '（近似）' : '') })));
   sel.value = B.indexes.SPX ? 'SPX' : sel.options[0].value; sel.onchange = drawBreadthChart;
   S.breadthChart = S.breadthChart || new LineChart($('#breadthChart'), { height: 280, yMin: 0, yMax: 100, yFmt: v => fmt(v, 0) + '%', bands: [{ y: 30, label: '超賣 30' }, { y: 70, label: '超買 70' }], range: '1Y' });
-  const ctl = $('#breadthRange'); ctl.textContent = ''; ctl.append(rangeControl([S.breadthChart], '1Y', ['3M', '6M', '1Y']));
+  S.nhnlChart = S.nhnlChart || new LineChart($('#nhnlChart'), { height: 220, yFmt: v => signed(v, 1, '%'), bands: [{ y: 5, label: '+5 極端貪婪' }, { y: -5, label: '−5 極端恐懼' }], range: '1Y', area: true });
+  S.mccSumChart = S.mccSumChart || new LineChart($('#mccSumChart'), { height: 200, yFmt: v => fmt(v, 0), range: '1Y', area: true });
+  S.mccOscChart = S.mccOscChart || new LineChart($('#mccOscChart'), { height: 150, yFmt: v => signed(v, 0), bands: [{ y: 0, label: '0' }], range: '1Y', area: true });
+  link(S.mccSumChart, S.mccOscChart);
+  const ctl = $('#breadthRange'); ctl.textContent = ''; ctl.append(rangeControl([S.breadthChart, S.nhnlChart, S.mccSumChart, S.mccOscChart], '1Y', ['3M', '6M', '1Y']));
   drawBreadthChart();
 }
 function drawBreadthChart() {
   const k = $('#breadthIndex').value; const r = S.breadth.indexes[k]; if (!r) return;
-  const h = r.history || {}; const series = ['20', '50', '200'].filter(w => h[w]).map((w, i) => ({ name: `站上 ${w} 日線 %`, dates: h.dates, values: h[w], color: seriesColor(i), fmt: v => fmt(v, 0) + '%' }));
-  $('#breadthChartTitle').textContent = `${r.name || k} 參與度歷史`; S.breadthChart.setSeries(series);
+  const h = r.history || {}; const name = r.name || k;
+  const series = ['20', '50', '200'].filter(w => h[w]).map((w, i) => ({ name: `站上 ${w} 日線 %`, dates: h.dates, values: h[w], color: seriesColor(i), fmt: v => fmt(v, 0) + '%' }));
+  $('#breadthChartTitle').textContent = `${name} 參與度歷史`; S.breadthChart.setSeries(series);
   const tb = $('#breadthChartTable'); tb.textContent = ''; dataTable(tb, series, 30);
+  const nh = r.nhnl || {}; const nhS = nh.history ? [{ name: '52 週淨新高 %', dates: h.dates, values: nh.history, color: seriesColor(0), fmt: v => signed(v, 1, '%') }] : [];
+  $('#nhnlTitle').textContent = `${name} 52 週淨新高` + (isNum(nh.nh) ? `（新高 ${nh.nh} 檔 / 新低 ${nh.nl} 檔）` : ''); S.nhnlChart.setSeries(nhS);
+  const t2 = $('#nhnlTable'); t2.textContent = ''; dataTable(t2, nhS, 30);
+  const m = mccOf(r);
+  const sumS = m ? [{ name: 'McClellan 累積指數', dates: h.dates, values: m.sum, color: seriesColor(0), fmt: v => fmt(v, 0) }] : [];
+  const oscS = m ? [{ name: 'McClellan 震盪指標', dates: h.dates, values: m.osc, color: seriesColor(1), fmt: v => signed(v, 0) }] : [];
+  $('#mccTitle').textContent = `${name} McClellan 成交量累積指數` + (m && isNum(m.rank1y) ? `（一年百分位 ${fmt(m.rank1y, 0)}）` : '');
+  S.mccSumChart.setSeries(sumS); S.mccOscChart.setSeries(oscS);
+  const t3 = $('#mccTable'); t3.textContent = ''; dataTable(t3, [...sumS, ...oscS], 30);
+}
+function initInfo() {
+  $$('.info').forEach(b => { b.addEventListener('click', e => { e.stopPropagation(); const w = b.parentElement; const open = w.classList.contains('open'); $$('.info-wrap.open').forEach(x => x.classList.remove('open')); if (!open) w.classList.add('open'); }); });
+  document.addEventListener('click', () => $$('.info-wrap.open').forEach(x => x.classList.remove('open')));
 }
 function seriesOf(key, name, fmtFn) { const s = ((S.macro && S.macro.series) || {})[key]; return s ? { name: name || s.name, dates: s.dates, values: s.values, fmt: fmtFn } : null; }
 function renderRates() {
@@ -490,7 +513,7 @@ function initTheme() {
 }
 async function main() {
   initTheme(); await loadAll();
-  renderHeader(); renderOverview(); renderReport(); renderBreadth(); renderRates(); renderVol(); indexPeTable(); renderWatchlist(); renderFooter(); initSearch(); initTabs();
+  renderHeader(); renderOverview(); renderReport(); renderBreadth(); renderRates(); renderVol(); indexPeTable(); renderWatchlist(); renderFooter(); initSearch(); initInfo(); initTabs();
 }
 main().catch(e => { console.error(e); const o = $('#overview'); if (o) o.textContent = '載入失敗：' + e.message; });
 })();
