@@ -1,0 +1,13 @@
+# Dependabot：每週檢查 Python 套件與 GitHub Actions 的新版本與已知弱點，自動開 PR
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies"]

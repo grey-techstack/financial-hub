@@ -1,0 +1,11 @@
+# gitleaks 設定：沿用官方預設規則；自動產生的市場資料檔不含憑證，排除以加快掃描
+title = "financial-hub"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "自動產生的市場資料（JSON/CSV）"
+paths = [
+  '''^data/.*\.(json|csv)$''',
+]

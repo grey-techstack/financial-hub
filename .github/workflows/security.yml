@@ -1,0 +1,75 @@
+name: 安全檢查
+
+# 等同 GitLab 的 Secret Detection / Dependency Scanning / SAST：
+# - gitleaks：掃整個 git 歷史找 API key、token、密碼，發現就讓 CI 失敗，並把結果上傳到 Security → Code scanning
+# - pip-audit：requirements.txt 解析後的套件版本比對已知弱點（PyPI Advisory / OSV）
+# - CodeQL：Python 與 JavaScript 靜態分析
+on:
+  push:
+    branches: ["**"]
+    paths-ignore: ["data/**", "reports/**"]   # 每日資料 commit 不重跑；每週排程會全量再掃一次
+  pull_request:
+  schedule:
+    - cron: "37 3 * * 1"   # 每週一 03:37 UTC 全量重掃（規則與弱點資料庫會更新）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: 祕密偵測（gitleaks，全部 git 歷史）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 安裝 gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -sSL -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar xzf gitleaks.tgz gitleaks && sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: 掃描（有發現就失敗）
+        run: gitleaks git --no-banner --redact --exit-code 1 --report-format sarif --report-path gitleaks.sarif .
+      - name: 上傳結果到 Security 分頁
+        if: always() && hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+  dependencies:
+    name: 相依套件弱點（pip-audit）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install --quiet pip-audit
+      - name: 掃描 requirements.txt
+        run: pip-audit -r requirements.txt --progress-spinner off
+
+  codeql:
+    name: 靜態分析（CodeQL ${{ matrix.language }}）
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
