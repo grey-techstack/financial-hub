@@ -2,8 +2,10 @@ name: 每日更新市場數據
 
 on:
   schedule:
-    # 週一至週五 22:15 UTC（美股收盤後約兩小時；台北時間 06:15）
-    - cron: "15 22 * * 1-5"
+    # 週一至週五 22:23 UTC（美股收盤後約兩小時；台北 06:23）。GitHub 排程常延遲，另加 23:23 UTC 補跑；
+    # 資料若在 8 小時內已更新（不論由誰更新）會自動略過，不會重複 commit。
+    - cron: "23 22 * * 1-5"
+    - cron: "23 23 * * 1-5"
   workflow_dispatch:
     inputs:
       quick:
@@ -24,6 +26,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,7 +35,23 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 檢查資料是否已在 8 小時內更新過（排程觸發時才略過）
+        id: fresh
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json, datetime as dt, pathlib
+          skip = False
+          p = pathlib.Path("data/status.json")
+          if p.exists():
+              try:
+                  g = dt.datetime.strptime(json.loads(p.read_text())["generated_at"], "%Y-%m-%d %H:%M").replace(tzinfo=dt.timezone.utc)
+                  skip = dt.datetime.now(dt.timezone.utc) - g < dt.timedelta(hours=8)
+              except Exception:
+                  skip = False
+          print("skip=" + ("true" if skip else "false"))
+          PY
       - name: 執行資料管線
+        if: github.event_name != 'schedule' || steps.fresh.outputs.skip != 'true'
         run: python3 pipeline/run_all.py ${{ inputs.quick && '--quick' || '' }} --workers 12
       - name: AI 市場解讀（需要 ANTHROPIC_API_KEY secret；沒有就略過）
         continue-on-error: true
@@ -39,17 +59,20 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 pipeline/insight.py && python3 pipeline/build_single.py >/dev/null
       - name: 提交更新
+        id: commit
         run: |
           git config user.name "grey-techstack"
           git config user.email "178301854+grey-techstack@users.noreply.github.com"
           git add -A data reports config/sox_fallback.txt
-          if git diff --cached --quiet; then echo "沒有變更"; exit 0; fi
+          if git diff --cached --quiet; then echo "沒有變更"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
           git commit -m "數據更新 $(date -u +%F)"
           git pull --rebase origin "${GITHUB_REF_NAME}" || true
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
   deploy:
     needs: update
+    if: needs.update.outputs.changed == 'true'
     uses: ./.github/workflows/pages.yml
     permissions:
       contents: read

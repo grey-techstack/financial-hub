@@ -33,7 +33,7 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 
 ## 自動更新與「在哪裡看」
 
-1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:15 UTC（台北 06:15）自動跑全量管線並提交 `data/` 與 `reports/`。
+1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:23 UTC（台北 06:23）自動跑全量管線並提交 `data/` 與 `reports/`。
    也可在 Actions 頁面手動觸發（`workflow_dispatch`）。
 2. **每日 AI 解讀**（只用 Claude Max plan，不需要 API key）：一個帶 repo 權限的常駐 Claude session 由 Routine 每個交易日
    06:35（台北）喚醒，依 `docs/daily-report.md` 寫 `reports/YYYY-MM-DD-insight.md` 並推上 repo，儀表板「今日報告」會顯示；
