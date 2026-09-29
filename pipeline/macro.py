@@ -16,7 +16,7 @@ from yahoo import UA, Yahoo
 LOG = logging.getLogger("macro")
 FRED_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={id}"
 # FRED 對瀏覽器 UA 會刻意拖慢（tarpit），用簡單的程式 UA 反而秒回
-SIMPLE_UA = "financial-hub/1.0 (+https://github.com/grey-techstack/financial-hub)"
+SIMPLE_UA = "financial-hub/1.0"
 TREASURY_URL = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/"
                 "{year}/all?type={typ}&field_tdr_date_value={year}&page&_format=csv")
 
