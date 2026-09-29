@@ -15,7 +15,9 @@
 - 每次要 commit 前先跑 `gitleaks git --no-banner --redact .`（沒有的話 `pip-audit -r requirements.txt` 也一併跑）。
 
 ## 部署與資料
-- 靜態站由 `.github/workflows/pages.yml` 部署（Pages Source = GitHub Actions），自訂網域 `<自訂網域>`，CNAME 檔由部署流程寫入。
+- 靜態站由 `.github/workflows/pages.yml` 部署（Pages Source = GitHub Actions）。自訂網域只設定在 Settings → Pages，
+  **網域字串不得出現在 repo 任何檔案或 commit 訊息**（使用者不想讓人從網域找到 repo）；DNS 用 A/AAAA + null MX 指向 Pages IP，
+  不用 CNAME 到 `<帳號>.github.io`（會洩漏帳號）；不加 `_github-pages-challenge-<帳號>` TXT。部署流程不放 CNAME 檔。
 - 資料由 `update-data.yml` 每個美股交易日 22:15 UTC 更新並 commit；本機開發用 `python3 pipeline/run_all.py --quick`，只重做日報用 `--report-only`。
 - AI 解讀走 **Max plan**：一個帶 repo 權限的常駐 Claude session（「財經數據每日 AI 解讀寫入」）由 Routine 每個交易日 06:35 台北時間喚醒，
   寫 `reports/<asof>-insight.md` 並 push；另一個 Routine 06:57 讀公開網址推播摘要。`pipeline/insight.py`（Claude API）只是備用，
