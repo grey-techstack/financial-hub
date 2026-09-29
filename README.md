@@ -45,8 +45,11 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
    - **本機**：`python3 pipeline/serve.py`，另有即時查詢任何代號的功能。
    - **GitHub Pages**（`.github/workflows/pages.yml`）：GitHub 免費方案的 private repo 不能開 Pages，先把 repo 改成 public
      （Settings → General → Danger Zone → Change visibility），再到 Settings → Pages → Source 選「GitHub Actions」。
-     之後每次資料更新都會自動部署（沒開通時部署步驟會自動略過，不會報錯）。網址為 `https://finhub.cloudnoot.com/`（自訂網域，見下）；未設定 DNS 前也可用 `https://grey-techstack.github.io/financial-hub/`。
-     **自訂網域**：在 cloudnoot.com 的 DNS 加一筆 CNAME `finhub` → `grey-techstack.github.io`，再到 Settings → Pages → Custom domain 填 `finhub.cloudnoot.com`，DNS 檢查通過後勾選 Enforce HTTPS。部署流程會自動放入 `CNAME` 檔。
+     之後每次資料更新都會自動部署（沒開通時部署步驟會自動略過，不會報錯）。
+     **自訂網域**：到 Settings → Pages → Custom domain 填子網域；DNS 用 **A / AAAA 記錄指向 GitHub Pages 的四組 IP**，
+     不要用 CNAME 指到 `<帳號>.github.io`（CNAME 會在公開的 DNS 記錄裡洩漏 GitHub 帳號），再加一筆 null MX（`0 .`）
+     讓 GitHub 的 DNS 檢查接受子網域使用 A 記錄；憑證簽發後勾選 Enforce HTTPS。網域字串與帳號不要寫進 repo 任何檔案，
+     以免有人用網域搜尋就找到 repo（Actions 來源的 Pages 不需要 `CNAME` 檔，自訂網域存在 Settings 裡）。
      不想公開 repo 的話，Cloudflare Pages / Netlify / Vercel 的免費方案都能連 private repo 直接部署（build command 留空、輸出目錄 `/`）。
 
 ## 追蹤清單
