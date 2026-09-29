@@ -71,6 +71,21 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 - **參與度**：以 Yahoo 兩年日收盤價與成交量計算，成分股名單用「今日名單」回溯（有生存者偏誤，但與常見做法一致）。52 週新高／新低以收盤價判定；McClellan 用比例調整淨值 (上漲 − 下跌)/(上漲 + 下跌)×1000 的 EMA19 − EMA39，累積指數起點 1000，水位為相對值。
 - 資料僅供研究參考，不構成投資建議。
 
+## 安全檢查
+
+`.github/workflows/security.yml` 在每次 push / PR 與每週一自動執行，等同 GitLab 的 Secret Detection、Dependency Scanning 與 SAST：
+
+| 檢查 | 工具 | 內容 |
+|---|---|---|
+| 祕密偵測 | gitleaks | 掃整個 git 歷史找 API key / token / 密碼；有發現 CI 直接失敗，結果上傳到 Security → Code scanning |
+| 相依套件弱點 | pip-audit | `requirements.txt` 解析後的版本比對 PyPI Advisory / OSV 弱點資料庫 |
+| 靜態分析 | CodeQL | Python 與 JavaScript 的安全與品質規則 |
+| 套件更新 | Dependabot | 每週檢查 pip 與 GitHub Actions 新版，自動開 PR |
+
+建議再到 repo **Settings → Code security** 開啟 GitHub 內建的 **Secret scanning** 與 **Push protection**（public repo 免費），
+這樣含祕密的 commit 在 push 時就會被擋下，不用等 CI。本機也可裝 pre-commit（`pip install pre-commit && pre-commit install`），
+commit 前先跑 gitleaks。原則：憑證只放 GitHub Actions secrets 或環境變數，永遠不進檔案。
+
 ## 目錄
 
 ```
