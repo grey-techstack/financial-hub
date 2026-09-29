@@ -35,14 +35,28 @@
   </section>
 
   <section id="tab-breadth" class="panel" role="tabpanel">
-    <h1>參與度：成分股站上均線的比例</h1>
-    <p class="sub">對應 Bloomberg「Percentage of Members Above Moving Average」。20 日線比例 &lt;40% 接近超賣、&lt;30% 超賣；&gt;60% 接近超買、&gt;70% 超買。點任一列可看該指數的歷史。</p>
-    <div class="card table-wrap" id="breadthTable"></div>
+    <h1>參與度：有多少股票在參與這波漲跌</h1>
+    <p class="sub">市場廣度（market breadth）的三種量法：站上均線比例看「位置」、52 週淨新高看「極端」、McClellan 成交量指標看「資金流向」。點表格任一列或用下拉選單切換指數；把游標移到 i 可看指標說明。</p>
+    <div class="card">
+      <div class="chart-title"><b>站上均線比例</b><span>對應 Bloomberg「Percentage of Members Above Moving Average」</span><span class="imark-wrap"><button class="imark" type="button" aria-label="指標說明">i</button><span class="imark-pop" role="tooltip">成分股中收盤價高於 N 日移動平均線的比例。20 日線看短線情緒：&lt;40% 接近超賣、&lt;30% 超賣、&gt;60% 接近超買、&gt;70% 超買；200 日線比例代表中長期趨勢的健康度，跌破 50% 表示多數股票已在空頭趨勢。指數靠幾檔權值股撐住時，這個比例會先於指數轉弱。</span></span></div>
+      <div class="table-wrap" id="breadthTable"></div>
+    </div>
     <div class="controls"><select id="breadthIndex" class="ctl" aria-label="選擇指數"></select><div id="breadthRange"></div></div>
     <div class="chart-card">
-      <div class="chart-title"><b id="breadthChartTitle">參與度歷史</b><span>站上 20 / 50 / 200 日線的成分股比例（%）</span></div>
+      <div class="chart-title"><b id="breadthChartTitle">參與度歷史</b><span>站上 20 / 50 / 200 日線的成分股比例（%）</span><span class="imark-wrap"><button class="imark" type="button" aria-label="指標說明">i</button><span class="imark-pop" role="tooltip">成分股中收盤價高於 N 日移動平均線的比例。20 日線看短線情緒：&lt;40% 接近超賣、&lt;30% 超賣、&gt;60% 接近超買、&gt;70% 超買；200 日線比例代表中長期趨勢的健康度，跌破 50% 表示多數股票已在空頭趨勢。指數靠幾檔權值股撐住時，這個比例會先於指數轉弱。</span></span></div>
       <div id="breadthChart"></div>
       <div id="breadthChartTable"></div>
+    </div>
+    <div class="chart-card" style="margin-top:12px">
+      <div class="chart-title"><b id="nhnlTitle">52 週淨新高</b><span>（創 52 週新高家數 − 創新低家數）÷ 有效成分股，%</span><span class="imark-wrap"><button class="imark" type="button" aria-label="指標說明">i</button><span class="imark-pop" role="tooltip">創 52 週新高的成分股家數減去創 52 週新低的家數，再除以有效成分股數（以收盤價計算）。對應 CNN Fear &amp; Greed 的「Stock Price Strength」：≤ −5% 為極端恐懼（新低股遠多於新高股），≥ +5% 為極端貪婪。它量的是「極端」：有多少股票已經破位或創高，最負的讀數通常出現在賣壓高潮附近。</span></span></div>
+      <div id="nhnlChart"></div>
+      <div id="nhnlTable"></div>
+    </div>
+    <div class="chart-card" style="margin-top:12px">
+      <div class="chart-title"><b id="mccTitle">McClellan 成交量累積指數</b><span>上圖累積指數（相對水位），下圖震盪指標（EMA19 − EMA39）</span><span class="imark-wrap"><button class="imark" type="button" aria-label="指標說明">i</button><span class="imark-pop" role="tooltip">每天以（上漲股成交量 − 下跌股成交量）÷ 兩者總和 × 1000 算出比例調整的淨成交量，19 日與 39 日指數移動平均的差就是 McClellan 震盪指標，逐日累加（起點 1000）成為累積指數（Summation Index）。對應 CNN 的「Stock Price Breadth」：累積指數在一年區間低檔代表資金流向的廣度極弱；震盪指標由負翻正常是反彈的早期訊號。累積指數的水位是相對值，看趨勢與轉折，不看絕對數字。</span></span></div>
+      <div id="mccSumChart"></div>
+      <div id="mccOscChart"></div>
+      <div id="mccTable"></div>
     </div>
   </section>
 

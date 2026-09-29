@@ -24,7 +24,8 @@
    - `# AI 市場解讀 YYYY-MM-DD`
    - **今日一句話**：最重要的一件事，用數字說
    - **參與度**：三大指數站上 20/50/200 日線比例的位置與變化；是否進入超賣（<30%）／接近超賣（<40%）／超買（>70%）；
-     短期超賣 vs 中長期趨勢（200 日線比例）要分開講
+     短期超賣 vs 中長期趨勢（200 日線比例）要分開講；再看 NYSE 的 52 週淨新高（≤ −5% 極端恐懼）與 McClellan 成交量累積指數
+     （一年百分位、震盪指標是否翻正）是否與均線比例互相印證
    - **實質利率與黃金**：10 年期實質利率的 5 日／21 日變化（bp）與一年百分位；名目利率拆解成實質 + 通膨預期；
      黃金的反應是否符合「實質利率升、黃金跌」；相關係數是否鬆動
    - **估值**：SOX / NASDAQ 100 / S&P 500 的 forward PE 與 NTM PE；相對歷史累積區間的位置；追蹤清單裡 EPS 預估修正最大的名字
@@ -33,7 +34,9 @@
    要求：每個判斷都引用具體數字；解釋「為什麼」而不只是描述；指出和前幾天相比的變化；語氣是研究筆記，不是投資建議；
    資料有缺（例如 FRED 沒更新）就明說。
 5. 存檔：同一份內容寫入 `reports/YYYY-MM-DD-insight.md` 與 `reports/latest-insight.md`。
-6. 提交：`git add reports data && git commit -m "AI 解讀 YYYY-MM-DD" && git push`（push 失敗先 `git pull --rebase` 再推）。
+6. 提交前先設定作者身分（repo 擁有者，不要用 Claude 的身分、不要加 Co-Authored-By）：
+   `git config user.name "grey-techstack" && git config user.email "178301854+grey-techstack@users.noreply.github.com"`，
+   然後 `git add reports data && git commit -m "AI 解讀 YYYY-MM-DD" && git push`（push 失敗先 `git pull --rebase` 再推）。
 7. 回覆一段 3–5 句的摘要（今日一句話 + 最重要的 2 個觀察 + 明日觀察），這段會成為通知內容。
 
 ## 注意

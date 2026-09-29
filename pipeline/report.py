@@ -144,6 +144,11 @@ def index_table(macro, breadth, valuation, asof):
             "b20_w": ((b.get("latest") or {}).get("20") - (b.get("week") or {}).get("20")) if (b.get("latest") or {}).get("20") is not None and (b.get("week") or {}).get("20") is not None else None,
             "members": b.get("members"), "priced": b.get("priced"),
             "fpe": v.get("fpe"), "ntm": v.get("ntm"), "tpe": v.get("tpe"),
+            "nhnl": (b.get("nhnl") or {}).get("latest"), "nh": (b.get("nhnl") or {}).get("nh"), "nl": (b.get("nhnl") or {}).get("nl"),
+            "mcc_sum": ((b.get("mcc") or {}).get("v") or (b.get("mcc") or {}).get("i") or {}).get("latest_sum"),
+            "mcc_osc": ((b.get("mcc") or {}).get("v") or (b.get("mcc") or {}).get("i") or {}).get("latest_osc"),
+            "mcc_prev_osc": ((b.get("mcc") or {}).get("v") or (b.get("mcc") or {}).get("i") or {}).get("prev_osc"),
+            "mcc_rank": ((b.get("mcc") or {}).get("v") or (b.get("mcc") or {}).get("i") or {}).get("rank1y"),
         })
     return rows
 
@@ -185,6 +190,30 @@ def breadth_signals(rows, breadth):
             sig.append({"level": "watch" if r["b20_w"] < 0 else "info", "topic": "breadth",
                         "short": f"{r['name']} 參與度 5 日{direction} {s(r['b20_w'], 0, ' pt')}",
                         "text": f"{r['name']} 站上 20 日線的比例 5 個交易日內{direction} {s(r['b20_w'], 0)} 個百分點（{f(r['b20'] - r['b20_w'], 0)}% → {f(r['b20'], 0)}%）。"})
+    # 52 週淨新高與 McClellan（以 NYSE 綜合為準，對應 CNN Fear & Greed；沒有就用 S&P 500）
+    ref = next((r for r in rows if r["key"] == "NYA" and r.get("nhnl") is not None), None) or next((r for r in rows if r["key"] == "SPX"), None)
+    if ref and ref.get("nhnl") is not None:
+        x = ref["nhnl"]
+        if x <= -5:
+            sig.append({"level": "alert", "topic": "breadth", "short": f"{ref['name']} 52 週淨新高 {s(x, 1, '%')}（極端恐懼）",
+                        "text": f"{ref['name']} 創 52 週新低的股票（{ref['nl']} 檔）遠多於創新高的（{ref['nh']} 檔），淨新高比例 {s(x, 1, '%')}，落在 CNN Fear & Greed 定義的極端恐懼區（≤ −5%）。這類讀數通常出現在賣壓高潮附近，但要等淨新高回到 0 以上才算脫離。"})
+        elif x <= -2:
+            sig.append({"level": "watch", "topic": "breadth", "short": f"{ref['name']} 52 週淨新高 {s(x, 1, '%')}，新低股占上風",
+                        "text": f"{ref['name']} 創 52 週新低 {ref['nl']} 檔、新高 {ref['nh']} 檔，淨新高比例 {s(x, 1, '%')}，個股層面的破位仍在擴散。"})
+        elif x >= 5:
+            sig.append({"level": "alert", "topic": "breadth", "short": f"{ref['name']} 52 週淨新高 {s(x, 1, '%')}（極端貪婪）",
+                        "text": f"{ref['name']} 創 52 週新高 {ref['nh']} 檔、新低 {ref['nl']} 檔，淨新高比例 {s(x, 1, '%')}，屬 CNN 定義的極端貪婪區（≥ +5%），追價風險升高。"})
+    if ref and ref.get("mcc_sum") is not None:
+        o, po, rk = ref.get("mcc_osc"), ref.get("mcc_prev_osc"), ref.get("mcc_rank")
+        if rk is not None and rk <= 10:
+            sig.append({"level": "watch", "topic": "breadth", "short": f"{ref['name']} McClellan 成交量累積指數 {f(ref['mcc_sum'], 0)}，處於一年低檔",
+                        "text": f"{ref['name']} 的 McClellan 成交量累積指數 {f(ref['mcc_sum'], 0)} 位於一年第 {rk:.0f} 百分位，代表資金流向的廣度動能極弱；震盪指標 {s(o, 0)}{'（仍為負，動能尚未翻轉）' if o is not None and o < 0 else '（已翻正）'}。"})
+        elif rk is not None and rk >= 90:
+            sig.append({"level": "info", "topic": "breadth", "short": f"{ref['name']} McClellan 累積指數 {f(ref['mcc_sum'], 0)}，處於一年高檔",
+                        "text": f"{ref['name']} 的 McClellan 成交量累積指數 {f(ref['mcc_sum'], 0)} 位於一年第 {rk:.0f} 百分位，廣度動能強勁。"})
+        if o is not None and po is not None and (o > 0) != (po > 0):
+            sig.append({"level": "info", "topic": "breadth", "short": f"{ref['name']} McClellan 震盪指標{'翻正' if o > 0 else '翻負'}（{s(o, 0)}）",
+                        "text": f"{ref['name']} 的 McClellan 成交量震盪指標由 {s(po, 0)} 變為 {s(o, 0)}，廣度動能{'開始改善，常是反彈的早期訊號' if o > 0 else '轉弱'}。"})
     spx = next((r for r in rows if r["key"] == "SPX"), None)
     if spx and spx["b200"] is not None:
         if spx["b200"] < 40:
@@ -374,16 +403,19 @@ def build_report(breadth: dict, valuation: dict, macro: dict, hist_rows: list[di
     L.append("")
     L.append("## 參與度（成分股站上 N 日均線的比例 %）")
     L.append("")
-    L.append("| 指數 | 成分股 | " + " | ".join(f"{w}D" for w in MA_WINDOWS) + " | 20D 5 日變化 | 20D 分區 |")
-    L.append("|---|---:|" + "---:|" * len(MA_WINDOWS) + "---:|:-:|")
+    L.append("| 指數 | 成分股 | " + " | ".join(f"{w}D" for w in MA_WINDOWS) + " | 20D 5 日變化 | 20D 分區 | 52 週淨新高 | McClellan 累積（震盪） |")
+    L.append("|---|---:|" + "---:|" * len(MA_WINDOWS) + "---:|:-:|---:|---:|")
     for r in rows:
         b = (breadth.get("indexes") or {}).get(r["key"]) or {}
         lat = b.get("latest") or {}
         cells = " | ".join(f(lat.get(str(w)), 0) for w in MA_WINDOWS)
         z, _ = zone(r["b20"])
-        L.append(f"| {r['name']}{'*' if r['approx'] else ''} | {b.get('priced', '—')}/{b.get('members', '—')} | {cells} | {s(r['b20_w'], 0, ' pt')} | {z} |")
+        mcc = f"{f(r.get('mcc_sum'), 0)}（{s(r.get('mcc_osc'), 0)}）" if r.get("mcc_sum") is not None else "—"
+        L.append(f"| {r['name']}{'*' if r['approx'] else ''} | {b.get('priced', '—')}/{b.get('members', '—')} | {cells} | {s(r['b20_w'], 0, ' pt')} | {z} | {s(r.get('nhnl'), 1, '%')} | {mcc} |")
     L.append("")
-    L.append("解讀：站上 20 日線比例 <40% 為接近超賣、<30% 超賣、>60% 接近超買、>70% 超買；站上 200 日線比例代表中長期趨勢的健康度。")
+    L.append("解讀：站上 20 日線比例 <40% 為接近超賣、<30% 超賣、>60% 接近超買、>70% 超買；站上 200 日線比例代表中長期趨勢的健康度。"
+             "52 週淨新高 = (創 52 週新高家數 − 創新低家數) ÷ 有效成分股，≤ −5% 極端恐懼、≥ +5% 極端貪婪（CNN Fear & Greed 的 Stock Price Strength）。"
+             "McClellan 成交量累積指數為相對水位，看一年區間位置與震盪指標正負（CNN 的 Stock Price Breadth）。")
     L.append("")
     L.append("## 實質利率與黃金")
     L.append("")

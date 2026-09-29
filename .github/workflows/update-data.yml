@@ -35,8 +35,8 @@ jobs:
         run: python3 pipeline/run_all.py ${{ inputs.quick && '--quick' || '' }} --workers 12
       - name: 提交更新
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "grey-techstack"
+          git config user.email "178301854+grey-techstack@users.noreply.github.com"
           git add -A data reports config/sox_fallback.txt
           if git diff --cached --quiet; then echo "沒有變更"; exit 0; fi
           git commit -m "數據更新 $(date -u +%F)"

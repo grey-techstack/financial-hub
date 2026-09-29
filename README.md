@@ -5,7 +5,7 @@
 | 分頁 | 內容 | 對應 Bloomberg |
 |---|---|---|
 | 今日報告 | 規則式訊號、完整日報、AI 解讀 | — |
-| 參與度 | 各指數成分股站上 10/20/50/100/150/200/250 日均線的比例（表 + 一年歷史圖） | `Percentage of Members Above Moving Average` |
+| 參與度 | 各指數成分股站上 10/20/50/100/150/200/250 日均線的比例（表 + 一年歷史圖）；52 週淨新高（創新高家數 − 創新低家數）；McClellan 成交量震盪指標與累積指數；每個指標旁有 i 說明標記 | `Percentage of Members Above Moving Average`；CNN Fear & Greed 的 Stock Price Strength / Breadth |
 | 實質利率與黃金 | 10 年期實質利率（TIPS）、名目殖利率、通膨預期、黃金；相關係數 | `GTII10 Govt` vs `XAU` |
 | Forward PE | 輸入股票／指數名稱查 Forward PE、NTM PE、Trailing PE、EPS 共識與修正；指數估值總覽；PE 歷史每日累積 | `BEst P/E` |
 | 波動率 | VIX、MOVE 一年走勢與百分位 | `MOVE Index`, `VIX` |
@@ -42,7 +42,8 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
    - **本機**：`python3 pipeline/serve.py`，另有即時查詢任何代號的功能。
    - **GitHub Pages**（`.github/workflows/pages.yml`）：GitHub 免費方案的 private repo 不能開 Pages，先把 repo 改成 public
      （Settings → General → Danger Zone → Change visibility），再到 Settings → Pages → Source 選「GitHub Actions」。
-     之後每次資料更新都會自動部署到 `https://grey-techstack.github.io/financial-hub/`（沒開通時部署步驟會自動略過，不會報錯）。
+     之後每次資料更新都會自動部署（沒開通時部署步驟會自動略過，不會報錯）。網址為 `https://<自訂網域>/`（自訂網域，見下）；未設定 DNS 前也可用 `https://grey-techstack.github.io/financial-hub/`。
+     **自訂網域**：在 <自訂網域> 的 DNS 加一筆 CNAME `finhub` → `grey-techstack.github.io`，再到 Settings → Pages → Custom domain 填 `<自訂網域>`，DNS 檢查通過後勾選 Enforce HTTPS。部署流程會自動放入 `CNAME` 檔。
      不想公開 repo 的話，Cloudflare Pages / Netlify / Vercel 的免費方案都能連 private repo 直接部署（build command 留空、輸出目錄 `/`）。
 
 ## 追蹤清單
@@ -65,7 +66,7 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 - **指數 PE** = Σ成分股市值 ÷ Σ成分股盈餘（盈餘 = EPS × 隱含股數，隱含股數 = 市值 ÷ 股價；含虧損公司；EPS 明顯異常者排除，如 Yahoo 偶發的小數點錯位）。
 - **NTM PE**（混合 12 個月）= 股價 ÷ [w × 本財年 EPS + (1 − w) × 下一財年 EPS]，w = 本財年剩餘月數 ÷ 12，最接近 Bloomberg 的 BEst P/E（BF12M）。
 - **PE 歷史**：免費來源沒有歷史的分析師預估，所以由管線每日快照累積（`data/history/`），自 2026-09-28 起；累積 20 個交易日後日報會顯示百分位。
-- **參與度**：以 Yahoo 兩年日收盤價計算，成分股名單用「今日名單」回溯（有生存者偏誤，但與常見做法一致）。
+- **參與度**：以 Yahoo 兩年日收盤價與成交量計算，成分股名單用「今日名單」回溯（有生存者偏誤，但與常見做法一致）。52 週新高／新低以收盤價判定；McClellan 用比例調整淨值 (上漲 − 下跌)/(上漲 + 下跌)×1000 的 EMA19 − EMA39，累積指數起點 1000，水位為相對值。
 - 資料僅供研究參考，不構成投資建議。
 
 ## 目錄

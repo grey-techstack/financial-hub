@@ -118,33 +118,33 @@ class Yahoo:
 
     # ---- chart ----------------------------------------------------------
     def chart(self, symbol: str, range_: str = "2y", interval: str = "1d") -> dict | None:
-        """回傳 {"symbol", "dates": [YYYY-MM-DD], "close": [float], "meta": {...}}；失敗回 None。"""
+        """回傳 {"symbol", "dates": [YYYY-MM-DD], "close": [float], "volume": [float], "meta": {...}}；失敗回 None。"""
         j = self._get_json(f"{Q1}/v8/finance/chart/{symbol}", {"range": range_, "interval": interval, "events": "div,splits"})
         try:
             res = j["chart"]["result"][0]
         except (TypeError, KeyError, IndexError):
             return None
         ts = res.get("timestamp") or []
-        closes = ((res.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+        quote = ((res.get("indicators") or {}).get("quote") or [{}])[0]
+        closes = quote.get("close") or []
+        volumes = quote.get("volume") or []
         meta = res.get("meta") or {}
         try:
             tz = ZoneInfo(meta.get("exchangeTimezoneName") or "America/New_York")
         except Exception:  # noqa: BLE001
             tz = ZoneInfo("America/New_York")
-        dates, vals = [], []
-        for t, c in zip(ts, closes):
+        # 同一天若有多筆（盤中快照）保留最後一筆
+        dedup: dict[str, tuple[float, float]] = {}
+        for i, (t, c) in enumerate(zip(ts, closes)):
             if c is None:
                 continue
-            dates.append(dt.datetime.fromtimestamp(t, tz).date().isoformat())
-            vals.append(float(c))
-        # 同一天若有多筆（盤中快照）保留最後一筆
-        dedup: dict[str, float] = {}
-        for d, v in zip(dates, vals):
-            dedup[d] = v
+            v = volumes[i] if i < len(volumes) else None
+            dedup[dt.datetime.fromtimestamp(t, tz).date().isoformat()] = (float(c), float(v or 0))
         return {
             "symbol": symbol,
             "dates": list(dedup.keys()),
-            "close": list(dedup.values()),
+            "close": [x[0] for x in dedup.values()],
+            "volume": [x[1] for x in dedup.values()],
             "meta": {k: meta.get(k) for k in ("symbol", "shortName", "longName", "currency", "regularMarketPrice", "exchangeName", "instrumentType", "regularMarketTime")},
         }
 
