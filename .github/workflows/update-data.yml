@@ -33,6 +33,11 @@ jobs:
       - run: pip install -r requirements.txt
       - name: 執行資料管線
         run: python3 pipeline/run_all.py ${{ inputs.quick && '--quick' || '' }} --workers 12
+      - name: AI 市場解讀（需要 ANTHROPIC_API_KEY secret；沒有就略過）
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 pipeline/insight.py && python3 pipeline/build_single.py >/dev/null
       - name: 提交更新
         run: |
           git config user.name "grey-techstack"

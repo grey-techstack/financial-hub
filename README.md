@@ -35,7 +35,9 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 
 1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:15 UTC（台北 06:15）自動跑全量管線並提交 `data/` 與 `reports/`。
    也可在 Actions 頁面手動觸發（`workflow_dispatch`）。
-2. **每日 AI 解讀**：Claude Routine 每日執行 `docs/daily-report.md` 的流程，產生 `reports/YYYY-MM-DD-insight.md` 並推播摘要。
+2. **每日 AI 解讀**：資料更新後 `pipeline/insight.py` 用 Claude API（預設 `claude-opus-5-5`，每天約幾美分）寫一份繁體中文解讀存成
+   `reports/YYYY-MM-DD-insight.md`，儀表板「今日報告」會顯示。需要到 repo **Settings → Secrets and variables → Actions → New repository secret**
+   新增 `ANTHROPIC_API_KEY`（沒有就自動略過）。另有一個 Claude Routine 每天早上讀公開網址上的解讀並推播摘要（見 `docs/daily-report.md`）。
 3. **看儀表板的三種方式**：
    - **單一 HTML 檔**：`python3 pipeline/build_single.py` 會產生 `dist/dashboard.html`（資料內嵌，可直接用瀏覽器開、不需伺服器，
      也能丟到任何靜態空間）與 `dist/artifact.html`（發布成 Claude 頁面用的片段版）。
