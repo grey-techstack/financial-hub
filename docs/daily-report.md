@@ -1,6 +1,12 @@
 # 每日 AI 市場解讀（Routine 執行指南）
 
-這份文件給「每日自動執行的 Claude Routine」看：每個美股交易日收盤後，讀取本 repo 最新數據與規則式日報，
+解讀有兩條產生路徑：
+- **主路徑（GitHub Actions）**：`update-data.yml` 在資料更新後執行 `pipeline/insight.py`，用 Claude API 產生
+  `reports/<asof>-insight.md` 與 `reports/latest-insight.md` 並一起 commit。需要 repo secret `ANTHROPIC_API_KEY`。
+- **Routine（Claude 排程 session）**：每天早上先到公開網址讀 `reports/latest-insight.md`；若已是最新交易日的解讀，
+  只做摘要並回覆（成為推播內容）。若還沒有（例如 secret 未設定），才依下面的步驟自己寫一份並推上 GitHub。
+
+以下是 Routine 自己寫解讀時的流程：每個美股交易日收盤後，讀取本 repo 最新數據與規則式日報，
 寫一份繁體中文的市場解讀，存檔、推上 GitHub，並回覆摘要作為通知內容。
 
 ## 產出
