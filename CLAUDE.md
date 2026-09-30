@@ -19,8 +19,8 @@
   **網域字串不得出現在 repo 任何檔案或 commit 訊息**（使用者不想讓人從網域找到 repo）；DNS 用 A/AAAA + null MX 指向 Pages IP，
   不用 CNAME 到 `<帳號>.github.io`（會洩漏帳號）；不加 `_github-pages-challenge-<帳號>` TXT。部署流程不放 CNAME 檔。
 - 資料由 `update-data.yml` 每個美股交易日 22:23 UTC 更新並 commit（23:23 UTC 補跑一次；8 小時內已更新則略過），常駐 session 若發現資料超過 8 小時未更新也會自己跑 pipeline；本機開發用 `python3 pipeline/run_all.py --quick`，只重做日報用 `--report-only`。
-- AI 解讀走 **Max plan**：一個帶 repo 權限的常駐 Claude session（「財經數據每日 AI 解讀寫入」）由 Routine 每個交易日 06:35 台北時間喚醒，
-  寫 `reports/<asof>-insight.md` 並 push；另一個 Routine 06:57 讀公開網址推播摘要。`pipeline/insight.py`（Claude API）只是備用，
+- AI 解讀走 **Max plan**：一個帶 repo 權限的常駐 Claude session（「財經數據每日 AI 解讀寫入」）由 Routine 每個交易日 06:50 台北時間喚醒，
+  寫 `reports/<asof>-insight.md` 並 push；另一個 Routine 07:20 讀公開網址推播摘要。`pipeline/insight.py`（Claude API）只是備用，
   **預設不啟用**：使用者不想有 Max plan 以外的任何花費，不要建立 API key、不要加 `ANTHROPIC_API_KEY` secret、不要接任何付費服務。
 - 改指標或資料來源時，同步更新 README「資料與方法」、`docs/daily-report.md` 與頁面上的 ⓘ 說明文字（index.html）。
 - 前端沒有建置步驟：改 `assets/app.js` 後用 `node -e "new Function(require('fs').readFileSync('assets/app.js','utf8'))"` 檢查語法，
