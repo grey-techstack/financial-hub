@@ -33,11 +33,11 @@ python3 pipeline/pe.py TSM --json                        # JSON 輸出
 
 ## 自動更新與「在哪裡看」
 
-1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:23 UTC（台北 06:23）自動跑全量管線並提交 `data/` 與 `reports/`。
+1. **GitHub Actions**（`.github/workflows/update-data.yml`）：週一至週五 22:08 / 22:23 / 22:38 UTC（台北 06:08 起，另 07:23 補跑）自動跑全量管線，8 小時內已更新則略過並提交 `data/` 與 `reports/`。
    也可在 Actions 頁面手動觸發（`workflow_dispatch`）。
 2. **每日 AI 解讀**（只用 Claude Max plan，不需要 API key）：一個帶 repo 權限的常駐 Claude session 由 Routine 每個交易日
-   06:50（台北）喚醒，依 `docs/daily-report.md` 寫 `reports/YYYY-MM-DD-insight.md` 並推上 repo，儀表板「今日報告」會顯示；
-   另一個 Routine 07:20 讀公開網址並推播摘要。`pipeline/insight.py` 是用 Claude API 的備用路徑，預設不啟用（沒有
+   07:05（台北）喚醒，依 `docs/daily-report.md` 寫 `reports/YYYY-MM-DD-insight.md` 並推上 repo，儀表板「今日報告」會顯示；
+   另一個 Routine 07:30 讀公開網址並推播摘要。`pipeline/insight.py` 是用 Claude API 的備用路徑，預設不啟用（沒有
    `ANTHROPIC_API_KEY` secret 就自動略過，不會產生費用）。
 3. **看儀表板的三種方式**：
    - **單一 HTML 檔**：`python3 pipeline/build_single.py` 會產生 `dist/dashboard.html`（資料內嵌，可直接用瀏覽器開、不需伺服器，

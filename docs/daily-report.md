@@ -1,8 +1,8 @@
 # 每日 AI 市場解讀（Routine 執行指南）
 
 解讀有兩條產生路徑：
-- **主路徑（Claude Max plan，預設）**：常駐 session「財經數據每日 AI 解讀寫入」由 Routine 每個交易日 06:50（台北）喚醒，
-  依本文件寫 `reports/<asof>-insight.md` 與 `reports/latest-insight.md` 並 push；推播 Routine 07:20 讀公開網址回摘要。
+- **主路徑（Claude Max plan，預設）**：常駐 session「財經數據每日 AI 解讀寫入」由 Routine 每個交易日 07:05（台北）喚醒，
+  依本文件寫 `reports/<asof>-insight.md` 與 `reports/latest-insight.md` 並 push；推播 Routine 07:30 讀公開網址回摘要。
 - **備用（GitHub Actions + Claude API）**：`pipeline/insight.py`，只有 repo 設了 `ANTHROPIC_API_KEY` secret 才會執行；預設不啟用、不花錢。
 
 以下是 Routine 自己寫解讀時的流程：每個美股交易日收盤後，讀取本 repo 最新數據與規則式日報，
