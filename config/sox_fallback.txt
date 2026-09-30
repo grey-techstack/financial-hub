@@ -1,4 +1,4 @@
-# SOX 成分股快照 2026-09-29（自動更新；線上抓取失敗時使用）
+# SOX 成分股快照 2026-09-30（自動更新；線上抓取失敗時使用）
 ADI	Analog Devices Cmn
 ALAB	Astera Labs, Inc.
 AMAT	Applied Materials
