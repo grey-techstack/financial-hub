@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-01 23:22",
+ "generated_at": "2026-10-02 23:06",
  "sources": {
   "sp500": "ok (503)",
   "ndx": "ok (101)",
@@ -8,19 +8,19 @@
   "sp400": "ok (400)",
   "sp600": "ok (603)",
   "tsx": "ok (219)",
-  "us_universe": "ok (5610)"
+  "us_universe": "cached 2026-10-01 (5610): nasdaqtrader 清單過短: 0"
  },
  "quick": false,
  "symbols_quoted": 5604,
  "symbols_breadth": 5594,
  "estimates": 526,
  "timings": {
-  "constituents": 7.0,
-  "quotes": 5.1,
-  "macro": 195.6,
-  "breadth": 518.3,
-  "valuation": 7.2,
+  "constituents": 9.2,
+  "quotes": 5.3,
+  "macro": 196.8,
+  "breadth": 195.9,
+  "valuation": 8.8,
   "report": 0.0
  },
- "total_seconds": 733.1
+ "total_seconds": 416.2
 }
