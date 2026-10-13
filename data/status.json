@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-10 01:44",
+ "generated_at": "2026-10-13 03:01",
  "sources": {
   "sp500": "ok (503)",
   "ndx": "ok (101)",
@@ -15,12 +15,12 @@
  "symbols_breadth": 5587,
  "estimates": 526,
  "timings": {
-  "constituents": 5.9,
-  "quotes": 3.5,
-  "macro": 188.1,
-  "breadth": 527.2,
-  "valuation": 4.9,
+  "constituents": 4.6,
+  "quotes": 4.2,
+  "macro": 189.6,
+  "breadth": 172.3,
+  "valuation": 5.4,
   "report": 0.0
  },
- "total_seconds": 729.6
+ "total_seconds": 376.2
 }
