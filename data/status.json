@@ -1,26 +1,26 @@
 {
- "generated_at": "2026-10-17 00:25",
+ "generated_at": "2026-10-20 01:04",
  "sources": {
   "sp500": "ok (503)",
   "ndx": "ok (101)",
   "dow": "ok (30)",
-  "sox": "fallback file (30): Nasdaq indexes 無 SOX 權重資料",
+  "sox": "ok (30)",
   "sp400": "ok (400)",
   "sp600": "ok (603)",
   "tsx": "ok (219)",
-  "us_universe": "ok (5607)"
+  "us_universe": "ok (5605)"
  },
  "quick": false,
- "symbols_quoted": 5600,
- "symbols_breadth": 5590,
+ "symbols_quoted": 5597,
+ "symbols_breadth": 5587,
  "estimates": 526,
  "timings": {
-  "constituents": 6.7,
-  "quotes": 6.1,
-  "macro": 188.9,
-  "breadth": 517.1,
-  "valuation": 4.2,
+  "constituents": 5.6,
+  "quotes": 3.1,
+  "macro": 188.4,
+  "breadth": 518.0,
+  "valuation": 4.5,
   "report": 0.0
  },
- "total_seconds": 723.1
+ "total_seconds": 719.6
 }
