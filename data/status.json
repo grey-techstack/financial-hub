@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-24 00:36",
+ "generated_at": "2026-10-27 01:27",
  "sources": {
   "sp500": "ok (503)",
   "ndx": "ok (101)",
@@ -8,19 +8,19 @@
   "sp400": "ok (400)",
   "sp600": "ok (603)",
   "tsx": "ok (219)",
-  "us_universe": "ok (5606)"
+  "us_universe": "ok (5604)"
  },
  "quick": false,
- "symbols_quoted": 5598,
- "symbols_breadth": 5588,
+ "symbols_quoted": 5596,
+ "symbols_breadth": 5586,
  "estimates": 526,
  "timings": {
-  "constituents": 6.2,
-  "quotes": 2.2,
-  "macro": 188.9,
-  "breadth": 104.6,
-  "valuation": 8.5,
+  "constituents": 4.1,
+  "quotes": 3.0,
+  "macro": 189.1,
+  "breadth": 520.9,
+  "valuation": 4.4,
   "report": 0.0
  },
- "total_seconds": 310.5
+ "total_seconds": 721.6
 }
